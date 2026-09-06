@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -28,23 +28,16 @@
             max-width: 500px;
             width: 100%;
             padding: 40px;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .header {
             text-align: center;
             margin-bottom: 30px;
+        }
+
+        .emoji {
+            font-size: 50px;
+            margin-bottom: 15px;
         }
 
         .header h1 {
@@ -57,11 +50,6 @@
             font-size: 16px;
             color: #666;
             line-height: 1.5;
-        }
-
-        .emoji {
-            font-size: 50px;
-            margin-bottom: 15px;
         }
 
         .form-group {
@@ -82,13 +70,11 @@
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
-            transition: border-color 0.3s ease;
         }
 
         input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .radio-group {
@@ -104,7 +90,6 @@
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
         .radio-option:hover {
@@ -127,11 +112,6 @@
             flex: 1;
         }
 
-        .radio-option input[type="radio"]:checked + label {
-            font-weight: 600;
-            color: #667eea;
-        }
-
         .submit-btn {
             width: 100%;
             padding: 14px;
@@ -142,17 +122,11 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             margin-top: 10px;
         }
 
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
+            opacity: 0.9;
         }
 
         .success-message {
@@ -187,10 +161,6 @@
             .emoji {
                 font-size: 40px;
             }
-
-            .radio-option {
-                padding: 12px;
-            }
         }
     </style>
 </head>
@@ -202,7 +172,7 @@
             <p>Samedi 15 septembre à partir de 20h</p>
         </div>
 
-        <form id="rsvpForm" action="/.netlify/functions/rsvp>
+        <form id="rsvpForm" action="/.netlify/functions/rsvp" method="POST">
             <div class="form-group">
                 <label for="prenomInput">Ton prénom</label>
                 <input 
@@ -235,9 +205,9 @@
                             type="radio" 
                             id="peutetre" 
                             name="réponse" 
-                            value="Peut-être, je te dis bientôt 🤔"
+                            value="Peut-être, je te dis bientôt"
                         >
-                        <label for="peutetre">Peut-être, je te dis bientôt 🤔</label>
+                        <label for="peutetre">Peut-être, je te dis bientôt</label>
                     </div>
 
                     <div class="radio-option">
@@ -245,14 +215,13 @@
                             type="radio" 
                             id="non" 
                             name="réponse" 
-                            value="Non, pas possible cette fois 😞"
+                            value="Non, pas possible cette fois"
                         >
-                        <label for="non">Non, pas possible cette fois 😞</label>
+                        <label for="non">Non, pas possible cette fois</label>
                     </div>
                 </div>
             </div>
 
-            <!-- Champs cachés pour le tracking -->
             <input type="hidden" name="timestamp" id="timestamp">
             <input type="hidden" name="user_link" id="userLink">
 
@@ -268,54 +237,49 @@
     </div>
 
     <script>
-        // Récupère le prénom de l'URL
         const params = new URLSearchParams(window.location.search);
         const prenom = params.get('name');
 
         if (prenom) {
             document.getElementById('prenomInput').value = prenom;
         } else {
-            // Si pas de prénom dans l'URL, laisse l'utilisateur le rentrer
             document.getElementById('prenomInput').removeAttribute('readonly');
             document.getElementById('prenomInput').style.backgroundColor = 'white';
         }
 
-        // Ajoute le timestamp et le lien de l'utilisateur
         document.getElementById('timestamp').value = new Date().toISOString();
         document.getElementById('userLink').value = window.location.href;
 
-        // Gère l'envoi du formulaire
         document.getElementById('rsvpForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const formData = new FormData(this);
             const prenom = document.getElementById('prenomInput').value;
             const reponse = document.querySelector('input[name="réponse"]:checked')?.value || '';
 
             if (!prenom || !reponse) {
-                document.getElementById('errorMessage').textContent = '❌ Veuillez remplir tous les champs.';
+                document.getElementById('errorMessage').textContent = 'Veuillez remplir tous les champs.';
                 document.getElementById('errorMessage').style.display = 'block';
                 return;
             }
 
-            // Envoie les données
-            fetch(this.action, {
+            const formData = new FormData(this);
+
+            fetch('/.netlify/functions/rsvp', {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
+                body: formData
             })
-            .then(response => {
-                if (response.ok) {
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
                     document.getElementById('rsvpForm').style.display = 'none';
                     document.getElementById('successMessage').style.display = 'block';
                 } else {
-                    throw new Error('Erreur lors de l\'envoi');
+                    throw new Error(data.message);
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
+                document.getElementById('errorMessage').textContent = 'Erreur: ' + error.message;
                 document.getElementById('errorMessage').style.display = 'block';
             });
         });
