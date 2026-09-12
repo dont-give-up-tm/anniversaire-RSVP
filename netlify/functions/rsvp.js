@@ -19,7 +19,7 @@ exports.handler = async (event) => {
     }
 
     // L'URL du webhook Google Apps Script
-    const webhookUrl = 'https://script.google.com/macros/d/ABC123DEF456/useweb...';
+    const webhookUrl = 'https://script.google.com/macros/s/AKfycbyuKJQoNXisj3X9PLEPz49-SoL8bRs_i7aKE73rCC0lvsbiTede2koLXDwigYSkcuJw/exec';
     
     // Envoie les données au Google Apps Script
     const response = await fetch(webhookUrl, {
