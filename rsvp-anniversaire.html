@@ -35,15 +35,11 @@
             margin-bottom: 30px;
         }
 
-        .emoji {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
+        .header img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            margin-bottom: 20px;
         }
 
         .header p {
@@ -113,10 +109,6 @@
             flex: 1;
         }
 
-        .form-group.hidden {
-            display: none;
-        }
-
         .form-group.hidden-fade {
             opacity: 0;
             pointer-events: none;
@@ -174,24 +166,13 @@
             margin-top: 20px;
         }
 
-        .question-number {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 30px 20px;
             }
 
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .emoji {
-                font-size: 40px;
+            .header p {
+                font-size: 14px;
             }
         }
     </style>
@@ -199,8 +180,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="AandT_40years.png" alt="Anniversaire 40 ans Alexia & Tristan" style="width: 100%; max-width: 400px; border-radius: 15px; margin-bottom: 20px;">
-            <p style="margin-top: 15px; font-size: 16px; color: #666;">Samedi 15 septembre à partir de 20h</p>
+            <img src="AandT_40years.png" alt="Anniversaire 40 ans Alexia & Tristan">
+            <p>Samedi 15 septembre à partir de 20h</p>
         </div>
 
         <form id="rsvpForm" action="/.netlify/functions/rsvp" method="POST">
@@ -217,7 +198,6 @@
                 >
             </div>
 
-            <!-- QUESTION 1 : Tu viens ? -->
             <div class="form-group">
                 <label>Tu viens ? *</label>
                 <div class="radio-group">
@@ -254,7 +234,6 @@
                 </div>
             </div>
 
-            <!-- QUESTION 2 : Avec qui ? (Apparaît seulement si "Oui") -->
             <div class="form-group hidden-fade" id="questionAvecQui">
                 <label>Avec qui viens-tu ? *</label>
                 <div class="radio-group">
@@ -292,6 +271,7 @@
 
             <input type="hidden" name="timestamp" id="timestamp">
             <input type="hidden" name="user_link" id="userLink">
+            <input type="hidden" name="id" id="userId">
 
             <button type="submit" class="submit-btn">Confirmer ma réponse</button>
         </form>
@@ -305,9 +285,9 @@
     </div>
 
     <script>
-        // Récupère le prénom de l'URL
         const params = new URLSearchParams(window.location.search);
         const prenom = params.get('name');
+        const userId = params.get('id');
 
         if (prenom) {
             document.getElementById('prenomInput').value = prenom;
@@ -316,28 +296,25 @@
             document.getElementById('prenomInput').style.backgroundColor = 'white';
         }
 
-        // Gère l'affichage conditionnel de la question 2
+        document.getElementById('userId').value = userId || 'unknown';
+
         const radioButtons = document.querySelectorAll('input[name="réponse"]');
         const questionAvecQui = document.getElementById('questionAvecQui');
 
         radioButtons.forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.value === 'Oui, je viens !') {
-                    // Affiche la question 2
                     questionAvecQui.classList.remove('hidden-fade');
                     questionAvecQui.classList.add('visible-fade');
                     
-                    // Rend le champ "avec_qui" requis
                     const avecQuiInputs = document.querySelectorAll('input[name="avec_qui"]');
                     avecQuiInputs.forEach(input => {
                         input.required = true;
                     });
                 } else {
-                    // Cache la question 2
                     questionAvecQui.classList.remove('visible-fade');
                     questionAvecQui.classList.add('hidden-fade');
                     
-                    // Désélectionne et rend optionnel le champ "avec_qui"
                     const avecQuiInputs = document.querySelectorAll('input[name="avec_qui"]');
                     avecQuiInputs.forEach(input => {
                         input.checked = false;
@@ -347,32 +324,27 @@
             });
         });
 
-        // Remplissage des champs cachés
         document.getElementById('timestamp').value = new Date().toISOString();
         document.getElementById('userLink').value = window.location.href;
 
-        // Gestion de l'envoi du formulaire
         document.getElementById('rsvpForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const prenom = document.getElementById('prenomInput').value;
+            const prenomValue = document.getElementById('prenomInput').value;
             const reponse = document.querySelector('input[name="réponse"]:checked')?.value || '';
             const avecQui = document.querySelector('input[name="avec_qui"]:checked')?.value || '';
 
-            if (!prenom || !reponse) {
+            if (!prenomValue || !reponse) {
                 document.getElementById('errorMessage').textContent = 'Veuillez remplir tous les champs obligatoires.';
                 document.getElementById('errorMessage').style.display = 'block';
                 return;
             }
 
-            // Si "Oui", vérifie que "avec_qui" est rempli
             if (reponse === 'Oui, je viens !' && !avecQui) {
                 document.getElementById('errorMessage').textContent = 'Veuillez indiquer avec qui vous venez.';
                 document.getElementById('errorMessage').style.display = 'block';
                 return;
             }
-
-            const formData = new FormData(this);
 
             fetch('/.netlify/functions/rsvp', {
                 method: 'POST',
@@ -380,11 +352,11 @@
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: new URLSearchParams({
-                    'prénom': prenom,
+                    'prénom': prenomValue,
                     'réponse': reponse,
                     'avec_qui': avecQui || 'N/A',
                     'timestamp': new Date().toISOString(),
-                    'user_link': window.location.href
+                    'id': userId || 'unknown'
                 })
             })
             .then(response => response.json())
