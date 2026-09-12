@@ -279,101 +279,128 @@
         <div class="success-message" id="successMessage">
             ✅ Merci ! Ta réponse a bien été enregistrée.
         </div>
-        <div class="error-message" id="errorMessage">
+                <div class="error-message" id="errorMessage">
             ❌ Erreur lors de l'envoi. Réessaie stp.
         </div>
+
+        <div id="alreadyRespondedMessage" style="display: none; text-align: center; padding: 40px;">
+            <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+            <h2 style="color: #2e7d32; margin-bottom: 10px; font-size: 28px;">Tu as déjà répondu !</h2>
+            <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                Merci pour ta confirmation.<br>
+            </p>
+        </div>
     </div>
+    </div>
+<script>
+    // ========== RÉCUPÈRE LES PARAMÈTRES DE L'URL ==========
+    const params = new URLSearchParams(window.location.search);
+    const prenom = params.get('name');
+    const userId = params.get('id');
 
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const prenom = params.get('name');
-        const userId = params.get('id');
+    // Pré-remplit le prénom
+    if (prenom) {
+        document.getElementById('prenomInput').value = prenom;
+    } else {
+        document.getElementById('prenomInput').removeAttribute('readonly');
+        document.getElementById('prenomInput').style.backgroundColor = 'white';
+    }
 
-        if (prenom) {
-            document.getElementById('prenomInput').value = prenom;
-        } else {
-            document.getElementById('prenomInput').removeAttribute('readonly');
-            document.getElementById('prenomInput').style.backgroundColor = 'white';
-        }
+    document.getElementById('userId').value = userId || 'unknown';
 
-        document.getElementById('userId').value = userId || 'unknown';
-
-        const radioButtons = document.querySelectorAll('input[name="réponse"]');
-        const questionAvecQui = document.getElementById('questionAvecQui');
-
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'Oui, je viens !') {
-                    questionAvecQui.classList.remove('hidden-fade');
-                    questionAvecQui.classList.add('visible-fade');
-                    
-                    const avecQuiInputs = document.querySelectorAll('input[name="avec_qui"]');
-                    avecQuiInputs.forEach(input => {
-                        input.required = true;
-                    });
-                } else {
-                    questionAvecQui.classList.remove('visible-fade');
-                    questionAvecQui.classList.add('hidden-fade');
-                    
-                    const avecQuiInputs = document.querySelectorAll('input[name="avec_qui"]');
-                    avecQuiInputs.forEach(input => {
-                        input.checked = false;
-                        input.required = false;
-                    });
-                }
-            });
-        });
-
-        document.getElementById('timestamp').value = new Date().toISOString();
-        document.getElementById('userLink').value = window.location.href;
-
-        document.getElementById('rsvpForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const prenomValue = document.getElementById('prenomInput').value;
-            const reponse = document.querySelector('input[name="réponse"]:checked')?.value || '';
-            const avecQui = document.querySelector('input[name="avec_qui"]:checked')?.value || '';
-
-            if (!prenomValue || !reponse) {
-                document.getElementById('errorMessage').textContent = 'Veuillez remplir tous les champs obligatoires.';
-                document.getElementById('errorMessage').style.display = 'block';
-                return;
-            }
-
-            if (reponse === 'Oui, je viens !' && !avecQui) {
-                document.getElementById('errorMessage').textContent = 'Veuillez indiquer avec qui vous venez.';
-                document.getElementById('errorMessage').style.display = 'block';
-                return;
-            }
-
-            fetch('/api/rsvp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'prénom': prenomValue,
-                    'réponse': reponse,
-                    'avec_qui': avecQui || 'N/A',
-                    'timestamp': new Date().toISOString(),
-                    'id': userId || 'unknown'
-                })
-            })
+    // ========== VÉRIFIE SI DÉJÀ RÉPONDU ==========
+    if (userId) {
+        fetch('https://script.google.com/macros/s/AKfycbwpjtY26k3sYLjN9lDQFQzE8hKKLB1rF-OTIyVFBzWrMivxyqV3-9DUqNFOVpFgdzg/exec' + userId)
             .then(response => response.json())
             .then(data => {
-                if (data.result === 'success') {
+                if (data.alreadyResponded) {
+                    // Affiche le message "Déjà répondu"
                     document.getElementById('rsvpForm').style.display = 'none';
-                    document.getElementById('successMessage').style.display = 'block';
-                } else {
-                    throw new Error(data.message);
+                    document.getElementById('alreadyRespondedMessage').style.display = 'block';
                 }
             })
-            .catch(error => {
-                console.error('Erreur:', error);
-                document.getElementById('errorMessage').textContent = 'Erreur: ' + error.message;
-                document.getElementById('errorMessage').style.display = 'block';
-            });
+            .catch(error => console.log('Vérification:', error));
+    }
+
+    // ========== GÈRE L'AFFICHAGE CONDITIONNEL DE LA QUESTION 2 ==========
+    const radioButtons = document.querySelectorAll('input[name="réponse"]');
+    const questionAvecQui = document.getElementById('questionAvecQui');
+
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'Oui, je viens !') {
+                questionAvecQui.classList.remove('hidden-fade');
+                questionAvecQui.classList.add('visible-fade');
+                
+                const avecQuiInputs = document.querySelectorAll('input[name="avec_qui"]');
+                avecQuiInputs.forEach(input => {
+                    input.required = true;
+                });
+            } else {
+                questionAvecQui.classList.remove('visible-fade');
+                questionAvecQui.classList.add('hidden-fade');
+                
+                const avecQuiInputs = document.querySelectorAll('input[name="avec_qui"]');
+                avecQuiInputs.forEach(input => {
+                    input.checked = false;
+                    input.required = false;
+                });
+            }
         });
-    </script>
+    });
+
+    // ========== REMPLISSAGE DES CHAMPS CACHÉS ==========
+    document.getElementById('timestamp').value = new Date().toISOString();
+    document.getElementById('userLink').value = window.location.href;
+
+    // ========== GESTION DE L'ENVOI DU FORMULAIRE ==========
+    document.getElementById('rsvpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const prenomValue = document.getElementById('prenomInput').value;
+        const reponse = document.querySelector('input[name="réponse"]:checked')?.value || '';
+        const avecQui = document.querySelector('input[name="avec_qui"]:checked')?.value || '';
+
+        if (!prenomValue || !reponse) {
+            document.getElementById('errorMessage').textContent = 'Veuillez remplir tous les champs obligatoires.';
+            document.getElementById('errorMessage').style.display = 'block';
+            return;
+        }
+
+        if (reponse === 'Oui, je viens !' && !avecQui) {
+            document.getElementById('errorMessage').textContent = 'Veuillez indiquer avec qui vous venez.';
+            document.getElementById('errorMessage').style.display = 'block';
+            return;
+        }
+
+        fetch('/api/rsvp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'prénom': prenomValue,
+                'réponse': reponse,
+                'avec_qui': avecQui || 'N/A',
+                'timestamp': new Date().toISOString(),
+                'id': userId || 'unknown'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.result === 'success') {
+                document.getElementById('rsvpForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            document.getElementById('errorMessage').textContent = 'Erreur: ' + error.message;
+            document.getElementById('errorMessage').style.display = 'block';
+        });
+    });
+</script>
 </body>
 </html>
