@@ -18,10 +18,9 @@ exports.handler = async (event) => {
       };
     }
 
-    // L'URL du webhook Google Apps Script
-    const webhookUrl = 'https://script.google.com/macros/s/AKfycbyuKJQoNXisj3X9PLEPz49-SoL8bRs_i7aKE73rCC0lvsbiTede2koLXDwigYSkcuJw/exec';
+    // ⚠️ REMPLACE PAR TON URL WEBHOOK (Étape 3 ci-dessus)
+    const webhookUrl = 'https://script.google.com/macros/s/AKfycbyZgTyE1CnJASUOKJX3tqGkoRIobWcPYwOxiGW8fxvO_MOqkUWeAC6WlzrptBFSs0bq/exec';
     
-    // Envoie les données au Google Apps Script
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -39,7 +38,7 @@ exports.handler = async (event) => {
     const result = await response.json();
 
     if (result.result === 'success') {
-      console.log(`✅ RSVP reçu: ${prenom} - ${reponse}`);
+      console.log(`✅ RSVP: ${prenom} - ${reponse} - ${userId}`);
       return {
         statusCode: 200,
         body: JSON.stringify({ 
