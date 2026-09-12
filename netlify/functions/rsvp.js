@@ -19,7 +19,7 @@ exports.handler = async (event) => {
     }
 
     // ⚠️ REMPLACE PAR TON URL WEBHOOK (Étape 3 ci-dessus)
-    const webhookUrl = 'https://script.google.com/macros/s/AKfycbyZgTyE1CnJASUOKJX3tqGkoRIobWcPYwOxiGW8fxvO_MOqkUWeAC6WlzrptBFSs0bq/exec';
+    const webhookUrl = 'https://script.google.com/macros/s/AKfycbwoXe5ukyJaVflM7B358yt_RRuV-jB0uPVEc7wz4ktwawFOZkgA3jCOxj4XZVA3fAA/exec';
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
