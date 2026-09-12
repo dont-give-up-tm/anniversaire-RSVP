@@ -14,7 +14,7 @@ export default async (req, res) => {
     }
 
     // L'URL du webhook Google Apps Script
-    const webhookUrl = 'https://script.google.com/macros/s/AKfycbwoXe5ukyJaVflM7B358yt_RRuV-jB0uPVEc7wz4ktwawFOZkgA3jCOxj4XZVA3fAA/exec';
+    const webhookUrl = 'https://script.google.com/macros/s/AKfycbxtxUv3EfnaAHmseGdakUxqOxPwqIxCX3r4xCWz_a2YlCBpQ1REIXDoRBy1asENIDje/exec';
     
     // Envoie les données au Google Apps Script
     const response = await fetch(webhookUrl, {
